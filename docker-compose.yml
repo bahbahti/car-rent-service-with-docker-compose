@@ -1,0 +1,54 @@
+version: '3'
+services:
+  data_base:
+    container_name: postgres-container
+    image: postgres:9.6.3
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: psg_db
+    restart: always
+
+  web:
+    container_name: web
+    build: './CarRentService'
+    image: web:latest
+    depends_on:
+      - data_base
+    ports:
+      - "8080:8080"
+    environment:
+       SPRING_DATASOURCE_URL: jdbc:postgresql://data_base:5432/psg_db
+       SPRING_DATASOURCE_USERNAME: postgres
+       SPRING_DATASOURCE_PASSWORD: postgres
+       APP_ENDPOINT: http://web-repair:8080/repairService
+    restart: always
+
+  data_base_repair:
+    container_name: postgres-container-repair
+    image: postgres:9.6.3
+    ports:
+      - "5555:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: psg_db
+    restart: always
+
+  web_repair:
+    container_name: web-repair
+    build: './CarRepairService'
+    image: web-repair:latest
+    depends_on:
+      - data_base_repair
+    ports:
+      - "7777:8080"
+    environment:
+       SPRING_DATASOURCE_URL: jdbc:postgresql://data_base_repair:5432/psg_db
+       SPRING_DATASOURCE_USERNAME: postgres
+       SPRING_DATASOURCE_PASSWORD: postgres
+       APP_ENDPOINT: http://web:8080/repairOrders
+    restart: always
+    
